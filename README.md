@@ -1,16 +1,38 @@
-```markdown
+---
+
 # 🚀 StartSmart
 
-**StartSmart** is a modern job platform that helps users discover opportunities, manage profiles, and streamline the hiring process. Built with **Next.js**, **MongoDB**, and **Clerk** for secure authentication.
+**StartSmart** is a modern job platform designed to connect job seekers with opportunities and help companies find the right talent. It offers users a seamless experience to manage their profiles, browse job listings, apply for positions, and track their applications all in one place.
+
+The platform is built using **Next.js**, **MongoDB**, and **Clerk** for secure authentication and fast performance.
 
 ---
 
 ## ✨ Features
 
-- 🔐 Authentication & authorization via Clerk  
-- 👤 Profile management with MongoDB  
-- 📄 RESTful API endpoints for jobs and applications  
-- 💻 Responsive UI built with React & Next.js  
+🔐 **User Authentication and Authorization**  
+Secure sign-up, sign-in, and session management powered by Clerk
+
+👤 **User Profile Management**  
+Create and update user profiles stored in MongoDB
+
+📄 **Job Listings Management**  
+Add, update, and delete job offers through a RESTful API
+
+📥 **Job Applications**  
+Apply to jobs and track submitted applications
+
+🔎 **Dynamic Job Search**  
+Browse and filter available jobs with ease
+
+🧾 **API Routes**  
+Well-structured endpoints for jobs, profiles, and applications
+
+💻 **Responsive UI**  
+Built with React (Next.js) for mobile and desktop compatibility
+
+🛠️ **Developer-Friendly Stack**  
+TypeScript, Node.js, and REST architecture for scalable development
 
 ---
 
@@ -18,89 +40,94 @@
 
 ### Prerequisites
 
+To run the project locally, make sure you have:
+
 - Node.js v16 or later  
-- MongoDB (Atlas or local instance)  
-- Clerk account  
+- A MongoDB account or local instance  
+- A Clerk account for authentication  
 
 ### Installation
 
-```bash
+Clone the repository and install dependencies:
+
+```
 git clone https://github.com/AlLubila/startsmart.git
 cd startsmart
 npm install
 ```
 
-Create a `.env.local` file in the root directory and add:
+Create a `.env.local` file in the root directory and add your environment variables:
 
-```ini
+```
 MONGODB_URI=your_mongodb_connection_string
 CLERK_SECRET_KEY=your_clerk_secret_key
 ```
 
 Start the development server:
 
-```bash
+```
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) in your browser.
+Open your browser and go to [http://localhost:3000](http://localhost:3000)
 
 ---
 
 ## 📡 API Routes
 
-### 🔐 Profile
+### Profile
 
-| Method | Endpoint         | Description                      |
-|--------|------------------|----------------------------------|
-| GET    | `/api/profile`   | Fetch current user's profile     |
-| PATCH  | `/api/profile`   | Update current user's profile    |
+- `GET /api/profile` Fetch the current user's profile  
+- `PATCH /api/profile` Update the current user's profile  
 
-### 💼 Jobs
+### Jobs
 
-| Method | Endpoint             | Description                     |
-|--------|----------------------|---------------------------------|
-| POST   | `/api/jobs`          | Create a new job listing        |
-| GET    | `/api/jobs`          | List all available jobs         |
-| GET    | `/api/jobs/:id`      | Get details of a specific job   |
-| PATCH  | `/api/jobs/:id`      | Update a job listing            |
-| DELETE | `/api/jobs/:id`      | Delete a job listing            |
+- `POST /api/jobs` Create a new job listing  
+- `GET /api/jobs` List all available jobs  
+- `GET /api/jobs/:id` Get details of a specific job  
+- `PATCH /api/jobs/:id` Update a job listing  
+- `DELETE /api/jobs/:id` Delete a job listing  
 
-### 📨 Applications
+### Applications
 
-| Method | Endpoint               | Description                         |
-|--------|------------------------|-------------------------------------|
-| POST   | `/api/applications`    | Submit a job application            |
-| GET    | `/api/applications`    | Get user's job applications         |
+- `POST /api/applications` Submit a job application  
+- `GET /api/applications` Retrieve user's job applications  
 
 ---
 
 ## 🧰 Tech Stack
 
-- **Next.js** – React framework for server-side rendering  
-- **MongoDB** – NoSQL database for storing user data  
-- **Clerk** – Authentication and user management  
-- **TypeScript** – Type-safe development  
-- **Node.js** – Backend runtime environment  
+- **Next.js** React framework for server-side rendering  
+- **MongoDB** NoSQL database for storing user data  
+- **Clerk** Authentication and user management  
+- **TypeScript** Type-safe development  
+- **Node.js** Backend runtime environment  
 
 ---
 
 ## 🤝 Contributing
 
+Contributions are welcome. If you would like to help improve the project:
+
 - Follow best practices  
 - Write clear and descriptive commit messages  
 - Submit issues or pull requests via GitHub  
+
+By contributing, you agree that your submissions become part of the project and may be used by the author in future versions, including commercial releases.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This software is proprietary. You may view and contribute to the codebase via pull requests, but you may not copy, modify, distribute, or use it commercially without explicit permission from the author.
+
+Copyright © 2025 Albi Lubila
 
 ---
 
 ## 📬 Contact
 
-Created by **AlLubila**  
-For questions or collaboration, reach out via GitHub.
-```
+Created by **Albi Lubila**  
+For questions or collaboration, feel free to reach out via GitHub
+
+---
