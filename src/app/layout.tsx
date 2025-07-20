@@ -94,13 +94,6 @@ export default function RootLayout({
                   Home
                 </Link>
                 <Link
-                  href="/applications"
-                  className="block px-3 py-2 rounded hover:bg-indigo-600 hover:text-white transition"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  Applications
-                </Link>
-                <Link
                   href="/profile"
                   className="block px-3 py-2 rounded hover:bg-indigo-600 hover:text-white transition"
                   onClick={() => setSidebarOpen(false)}
