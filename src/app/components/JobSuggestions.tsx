@@ -1,6 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import parse from "html-react-parser";
+import Link from "next/link";
+import DOMPurify from "dompurify"; // optional: to clean the HTML
 
 type Job = {
   id: string;
@@ -18,7 +21,7 @@ type Job = {
 };
 
 type Props = {
-  country: string; // Ignoré maintenant
+  country: string;
   skills: string[];
   what: string;
   sortBy: "newest" | "oldest";
@@ -27,6 +30,7 @@ type Props = {
 };
 
 export default function JobSuggestions({
+  country,
   skills,
   what,
   sortBy,
@@ -43,10 +47,15 @@ export default function JobSuggestions({
       setError(null);
 
       try {
-        const skillParams = skills.map((s) => `skills=${encodeURIComponent(s)}`).join("&");
+        const skillParams = skills
+          .map((s) => `skills=${encodeURIComponent(s)}`)
+          .join("&");
         const whatParam = what ? `&what=${encodeURIComponent(what)}` : "";
+        const countryParam = country
+          ? `&country=${encodeURIComponent(country)}`
+          : "";
 
-        const url = `/api/jobs?${skillParams}${whatParam}`;
+        const url = `/api/jobs?${skillParams}${whatParam}${countryParam}`;
         const res = await fetch(url);
 
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -78,7 +87,7 @@ export default function JobSuggestions({
       setJobs([]);
       setLoading(false);
     }
-  }, [skills, what, sortBy]);
+  }, [skills, what, sortBy, country]);
 
   return (
     <div className="mt-10 space-y-4">
@@ -96,48 +105,64 @@ export default function JobSuggestions({
             key={job.id}
             className="relative block p-4 bg-gray-800 rounded hover:bg-gray-700 transition"
           >
-            <a
-              href={job.redirectUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-            >
-              <h3 className="font-semibold">{job.title}</h3>
-              <p className="text-sm text-gray-300">
-                {job.company} – {job.city || job.location}
-                {job.remoteType && (
-                  <span className="ml-2 px-2 py-0.5 bg-blue-600 text-xs rounded">
-                    {job.remoteType === "remote"
-                      ? "Remote"
-                      : job.remoteType === "onsite"
-                      ? "On-site"
-                      : "Hybrid"}
-                  </span>
-                )}
-              </p>
-              <p className="text-xs mt-1 text-gray-400">
-                {job.description.slice(0, 120)}...
-              </p>
-              {job.matchPercentage !== undefined && (
-                <p className="text-xs mt-1 text-green-400">
-                  🔍 Match (future IA): {Math.round(job.matchPercentage)}%
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <Link
+                  href={job.redirectUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-lg font-semibold text-blue-400 hover:underline"
+                >
+                  {job.title}
+                </Link>
+                <p className="text-sm text-gray-300">
+                  {job.company} – {job.city || job.location}
+                  {job.remoteType && (
+                    <span className="ml-2 px-2 py-0.5 bg-blue-600 text-xs rounded">
+                      {job.remoteType === "remote"
+                        ? "Remote"
+                        : job.remoteType === "onsite"
+                        ? "On-site"
+                        : "Hybrid"}
+                    </span>
+                  )}
                 </p>
-              )}
-              <p className="text-xs mt-1 text-gray-400">
-                Posted on: {new Date(job.postedDate).toLocaleDateString()}
-              </p>
-            </a>
+                <p className="text-xs mt-1 text-gray-400">
+                  Posted on: {new Date(job.postedDate).toLocaleDateString()}
+                </p>
+              </div>
 
-            <button
-              onClick={() => toggleFavorite(job.id)}
-              aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-              className={`absolute top-3 right-3 text-2xl transition-colors ${
-                isFavorite ? "text-red-500" : "text-gray-400 hover:text-red-500"
-              }`}
-              type="button"
-            >
-              {isFavorite ? "❤️" : "🤍"}
-            </button>
+              <button
+                onClick={() => toggleFavorite(job.id)}
+                aria-label={
+                  isFavorite ? "Remove from favorites" : "Add to favorites"
+                }
+                className={`text-2xl transition-colors ${
+                  isFavorite
+                    ? "text-red-500"
+                    : "text-gray-400 hover:text-red-500"
+                }`}
+                type="button"
+              >
+                {isFavorite ? "❤️" : "🤍"}
+              </button>
+            </div>
+
+            {/* ✅ Render HTML safely without <a> tags */}
+            <div className="text-xs mt-2 text-gray-400 line-clamp-4">
+              {parse(
+                DOMPurify.sanitize(job.description, {
+                  ALLOWED_TAGS: ["b", "strong", "i", "em", "p", "ul", "li", "br"],
+                  ALLOWED_ATTR: [],
+                })
+              )}
+            </div>
+
+            {job.matchPercentage !== undefined && (
+              <p className="text-xs mt-1 text-green-400">
+                🔍 Match (future AI): {Math.round(job.matchPercentage)}%
+              </p>
+            )}
           </div>
         );
       })}
