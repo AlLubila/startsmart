@@ -64,7 +64,7 @@ export default function ProfilePage() {
       setError(null);
       setSuccess(null);
       await fetchWithErrorHandling("/api/profile", {
-        method: "POST",
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
       });

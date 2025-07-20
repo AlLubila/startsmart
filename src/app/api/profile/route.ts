@@ -52,7 +52,7 @@ export async function GET(request: Request) {
   }
 }
 
-// 🔹 POST — (optionnel) si tu veux créer un profil initialement
+// 🔹 POST — create or replace profile
 export async function POST(request: Request) {
   try {
     const { userId } = await auth();
@@ -67,6 +67,10 @@ export async function POST(request: Request) {
 
     const profileData = await request.json();
 
+    // ✅ Delete existing profiles for this user
+    await profiles.deleteMany({ userId });
+
+    // ✅ Insert the new one
     await profiles.insertOne({
       ...profileData,
       userId,
@@ -74,9 +78,10 @@ export async function POST(request: Request) {
       updatedAt: new Date(),
     });
 
-    return NextResponse.json({ message: "Profile created" });
+    return NextResponse.json({ message: "Profile created/replaced" });
   } catch (error) {
     console.error("POST /api/profile error:", error);
     return NextResponse.json({ error: "Could not create profile" }, { status: 500 });
   }
 }
+
