@@ -12,6 +12,7 @@ import {
 } from "@clerk/nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Menu, X } from "lucide-react";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -68,6 +69,9 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
         <body className="antialiased bg-gray-900 text-gray-100">
+          {/* 🔥 Toast system */}
+          <Toaster position="top-right" toastOptions={{ duration: 4000 }} />
+
           <div className="flex h-screen overflow-hidden">
             {/* Sidebar */}
             <aside
