@@ -1,8 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import JobSuggestions from "../app/components/JobSuggestions";
-import { fetchWithErrorHandling } from "../../utils/fetchWithErrorHandling";
+import { useEffect, useState } from 'react';
+import JobSuggestions from '../app/components/JobSuggestions';
+import { fetchWithErrorHandling } from '../../utils/fetchWithErrorHandling';
+import { detectUserCountry } from '../../utils/geoUtils';
 
 type Profile = {
   skills: string[];
@@ -11,16 +12,16 @@ type Profile = {
   education: { degree: string }[];
 };
 
-type SortDirection = "newest" | "oldest";
+type SortDirection = 'newest' | 'oldest';
 
 export default function HomePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>("newest");
+  const [sortDirection, setSortDirection] = useState<SortDirection>('newest');
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [errorProfile, setErrorProfile] = useState<string | null>(null);
 
-  // Country state with localStorage persistence
+  // Country state with localStorage persistence handled inside detectUserCountry
   const [country, setCountry] = useState<string | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
 
@@ -29,15 +30,15 @@ export default function HomePage() {
       setLoadingProfile(true);
       setErrorProfile(null);
       try {
-        const data = await fetchWithErrorHandling("/api/profile");
+        const data = await fetchWithErrorHandling('/api/profile');
         setProfile({
           skills: data.skills || [],
-          bio: data.bio || "",
+          bio: data.bio || '',
           experience: data.experience || [],
           education: data.education || [],
         });
       } catch {
-        setErrorProfile("Failed to load profile");
+        setErrorProfile('Failed to load profile');
       } finally {
         setLoadingProfile(false);
       }
@@ -46,64 +47,32 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    // Try to get country from localStorage first
-    const storedCountry = localStorage.getItem("userCountry");
-    if (storedCountry) {
-      setCountry(storedCountry);
-      return; // no need to ask again
-    }
-
-    // If no stored country, ask for geolocation
-    if (!("geolocation" in navigator)) {
-      setLocationError("Geolocation is not supported by your browser.");
-      // fallback default
-      setCountry("fr");
-      localStorage.setItem("userCountry", "fr");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (position) => {
-        const { latitude, longitude } = position.coords;
-        try {
-          // Using geocode.xyz API to get country code
-          const res = await fetch(
-            `https://geocode.xyz/${latitude},${longitude}?geoit=json`
-          );
-          if (!res.ok) throw new Error("Failed to fetch location info");
-          const data = await res.json();
-          if (data && data.country) {
-            const countryCode = data.country.toLowerCase();
-            setCountry(countryCode);
-            localStorage.setItem("userCountry", countryCode);
-            setLocationError(null);
-          } else {
-            setLocationError(
-              "Unable to detect your country from your location."
-            );
-            // fallback
-            setCountry("fr");
-            localStorage.setItem("userCountry", "fr");
-          }
-        } catch {
-          setLocationError("Failed to fetch country info.");
-          setCountry("fr");
-          localStorage.setItem("userCountry", "fr");
-        }
-      },
-      (error) => {
-        if (error.code === error.PERMISSION_DENIED) {
+    async function fetchCountry() {
+      try {
+        const code = await detectUserCountry();
+        if (code) {
+          setCountry(code);
+          setLocationError(null);
+        } else {
           setLocationError(
-            "Please enable location access to get job suggestions for your country."
+            'Unable to detect your country. Please enable location services or check your connection.'
+          );
+        }
+      } catch (error: any) {
+        if (
+          error?.message?.toLowerCase().includes('permission') ||
+          error?.code === 1 // GeolocationPositionError.PERMISSION_DENIED
+        ) {
+          setLocationError(
+            'Location access denied. Please enable location permissions in your browser settings and reload the page.'
           );
         } else {
-          setLocationError("Failed to get your location.");
+          setLocationError('Error detecting your location.');
         }
-        // fallback country
-        setCountry("fr");
-        localStorage.setItem("userCountry", "fr");
       }
-    );
+    }
+
+    fetchCountry();
   }, []);
 
   const combinedWhat = profile
@@ -113,8 +82,8 @@ export default function HomePage() {
         ...profile.education.map((e) => e.degree),
       ]
         .filter(Boolean)
-        .join(" ")
-    : "";
+        .join(' ')
+    : '';
 
   function toggleFavorite(id: string) {
     setFavorites((prev) => ({
@@ -124,7 +93,7 @@ export default function HomePage() {
   }
 
   function toggleSortDirection() {
-    setSortDirection((prev) => (prev === "newest" ? "oldest" : "newest"));
+    setSortDirection((prev) => (prev === 'newest' ? 'oldest' : 'newest'));
   }
 
   return (
@@ -136,7 +105,7 @@ export default function HomePage() {
           onClick={toggleSortDirection}
           className="border px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-600"
         >
-          Sort by date: {sortDirection === "newest" ? "↓ Newest" : "↑ Oldest"}
+          Sort by date: {sortDirection === 'newest' ? '↓ Newest' : '↑ Oldest'}
         </button>
       </div>
 
@@ -146,8 +115,33 @@ export default function HomePage() {
       )}
 
       {locationError && (
-        <div className="bg-yellow-400 p-4 rounded mb-4 text-black">
-          {locationError}
+        <div className="bg-yellow-400 p-4 rounded mb-4 text-black flex items-center">
+          <span>{locationError}</span>
+          <button
+            onClick={() => {
+              setLocationError(null);
+              setCountry(null);
+              detectUserCountry()
+                .then((code) => {
+                  if (code) {
+                    setCountry(code);
+                    setLocationError(null);
+                  } else {
+                    setLocationError(
+                      'Still unable to detect your country. Please enable location services.'
+                    );
+                  }
+                })
+                .catch(() => {
+                  setLocationError(
+                    'Error detecting your location. Please try again.'
+                  );
+                });
+            }}
+            className="ml-4 px-3 py-1 bg-gray-800 text-white rounded hover:bg-gray-700"
+          >
+            Retry
+          </button>
         </div>
       )}
 
@@ -163,7 +157,6 @@ export default function HomePage() {
         />
       )}
 
-      {/* If location error, optionally show message or fallback */}
       {!country && !locationError && <p>Detecting your location...</p>}
     </div>
   );
