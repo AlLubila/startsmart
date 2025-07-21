@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import JobSuggestions from "../app/components/JobSuggestions";
-import { fetchWithErrorHandling } from "../../utils/fetchWithErrorHandling";
-import { detectUserCountry } from "../../utils/geoUtils";
+import { useEffect, useState } from 'react';
+import JobSuggestions from '../app/components/JobSuggestions';
+import { fetchWithErrorHandling } from '../../utils/fetchWithErrorHandling';
+import { detectUserCountry } from '../../utils/geoUtils';
 
 type Profile = {
   skills: string[];
@@ -18,13 +18,14 @@ type Job = {
   company: string;
   location: string;
   description: string;
+   redirectUrl: string; 
 };
 
-type SortDirection = "newest" | "oldest";
+type SortDirection = 'newest' | 'oldest';
 
 export default function HomePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>("newest");
+  const [sortDirection, setSortDirection] = useState<SortDirection>('newest');
   const [favorites, setFavorites] = useState<Record<string, boolean>>({});
   const [loadingProfile, setLoadingProfile] = useState(false);
   const [errorProfile, setErrorProfile] = useState<string | null>(null);
@@ -42,16 +43,16 @@ export default function HomePage() {
       setLoadingProfile(true);
       setErrorProfile(null);
       try {
-        const data = await fetchWithErrorHandling("/api/profile");
-        console.log("Profile:", data);
+        const data = await fetchWithErrorHandling('/api/profile');
+        console.log('Profile:', data);
         setProfile({
           skills: data.skills || [],
-          bio: data.bio || "",
+          bio: data.bio || '',
           experience: data.experience || [],
           education: data.education || [],
         });
       } catch {
-        setErrorProfile("Failed to load profile");
+        setErrorProfile('Failed to load profile');
       } finally {
         setLoadingProfile(false);
       }
@@ -64,25 +65,25 @@ export default function HomePage() {
     async function fetchCountry() {
       try {
         const code = await detectUserCountry();
-        console.log("Country:", code);
+        console.log('Country:', code);
         if (code) {
           setCountry(code);
           setLocationError(null);
         } else {
           setLocationError(
-            "Unable to detect your country. Please enable location services or check your connection."
+            'Unable to detect your country. Please enable location services or check your connection.'
           );
         }
       } catch (error: any) {
         if (
-          error?.message?.toLowerCase().includes("permission") ||
+          error?.message?.toLowerCase().includes('permission') ||
           error?.code === 1 // GeolocationPositionError.PERMISSION_DENIED
         ) {
           setLocationError(
-            "Location access denied. Please enable location permissions in your browser settings and reload the page."
+            'Location access denied. Please enable location permissions in your browser settings and reload the page.'
           );
         } else {
-          setLocationError("Error detecting your location.");
+          setLocationError('Error detecting your location.');
         }
       }
     }
@@ -98,14 +99,14 @@ export default function HomePage() {
         ...profile.education.map((e) => e.degree),
       ]
         .filter(Boolean)
-        .join(" ")
-    : "";
+        .join(' ')
+    : '';
 
   // Fetch jobs when profile and country are ready
   useEffect(() => {
     async function fetchJobs() {
       if (!profile || !country) {
-        console.log("No profile or country yet, skipping jobs fetch");
+        console.log('No profile or country yet, skipping jobs fetch');
         return;
       }
 
@@ -115,18 +116,18 @@ export default function HomePage() {
       try {
         const response = await fetch(
           `/api/jobs?country=${country}&skills=${encodeURIComponent(
-            profile.skills.join(",")
+            profile.skills.join(',')
           )}&what=${encodeURIComponent(combinedWhat)}&sort=${sortDirection}`
         );
-        if (!response.ok) throw new Error("Failed to fetch jobs");
+        if (!response.ok) throw new Error('Failed to fetch jobs');
 
         const data = await response.json();
 
-        console.log("Jobs API response:", data.jobs);
+        console.log('Jobs API response:', data.jobs);
 
         setJobs(data.jobs || []);
       } catch (error: any) {
-        setErrorJobs(error.message || "Failed to load jobs");
+        setErrorJobs(error.message || 'Failed to load jobs');
       } finally {
         setLoadingJobs(false);
       }
@@ -137,7 +138,7 @@ export default function HomePage() {
 
   // Log when jobs state updates
   useEffect(() => {
-    console.log("Jobs state changed:", jobs);
+    console.log('Jobs state changed:', jobs);
   }, [jobs]);
 
   // Toggle favorite job
@@ -150,7 +151,7 @@ export default function HomePage() {
 
   // Toggle sort direction for jobs
   function toggleSortDirection() {
-    setSortDirection((prev) => (prev === "newest" ? "oldest" : "newest"));
+    setSortDirection((prev) => (prev === 'newest' ? 'oldest' : 'newest'));
   }
 
   return (
@@ -162,7 +163,7 @@ export default function HomePage() {
           onClick={toggleSortDirection}
           className="border px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-600"
         >
-          Sort by date: {sortDirection === "newest" ? "↓ Newest" : "↑ Oldest"}
+          Sort by date: {sortDirection === 'newest' ? '↓ Newest' : '↑ Oldest'}
         </button>
       </div>
 
@@ -185,14 +186,12 @@ export default function HomePage() {
                     setLocationError(null);
                   } else {
                     setLocationError(
-                      "Still unable to detect your country. Please enable location services."
+                      'Still unable to detect your country. Please enable location services.'
                     );
                   }
                 })
                 .catch(() => {
-                  setLocationError(
-                    "Error detecting your location. Please try again."
-                  );
+                  setLocationError('Error detecting your location. Please try again.');
                 });
             }}
             className="ml-4 px-3 py-1 bg-gray-800 text-white rounded hover:bg-gray-700"
@@ -210,8 +209,8 @@ export default function HomePage() {
         <JobSuggestions
           jobs={jobs}
           sortBy={sortDirection}
-          favorites={favorites}
-          toggleFavorite={toggleFavorite}
+          favorites={favorites}          // <--- Pass favorites here
+          toggleFavorite={toggleFavorite} // <--- Pass toggle function here
         />
       ) : (
         !loadingJobs && <p>No job suggestions available at the moment.</p>
