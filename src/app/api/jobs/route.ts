@@ -46,7 +46,6 @@ async function detectCountryFromIP(ip: string | null): Promise<string> {
   }
 }
 
-// Supported country mapping for Adzuna
 const countryNameToCode: Record<string, string> = {
   austria: "at",
   australia: "au",
@@ -92,7 +91,6 @@ export async function GET(request: Request) {
     const country = rawCountry || detectedCountry;
     const countryCode = countryNameToCode[country.toLowerCase()] || "fr";
 
-    // If a specific job is requested by ID
     if (id) {
       try {
         const job = await jobsCollection.findOne({ _id: new ObjectId(id) });
@@ -103,7 +101,6 @@ export async function GET(request: Request) {
       }
     }
 
-    // MongoDB Query
     const mongoFilter: any = {};
     if (country) mongoFilter.country = country.toLowerCase();
     if (location) mongoFilter.location = { $regex: new RegExp(location, "i") };
@@ -127,7 +124,6 @@ export async function GET(request: Request) {
       combined.push(...jobsFormatted);
     }
 
-    // Fallback to Adzuna
     if (combined.length < 10) {
       try {
         const adzunaJobs = await fetchAdzunaJobs({
@@ -147,7 +143,6 @@ export async function GET(request: Request) {
       }
     }
 
-    // Fallback to RemoteOK
     if (combined.length < 10) {
       try {
         const remoteOKJobs = await fetchRemoteOKJobs(skills);
@@ -170,8 +165,6 @@ export async function GET(request: Request) {
       }
     }
 
-    // Optional: Jooble
-    
     if (combined.length < 10) {
       try {
         const joobleJobs = await fetchJoobleJobs({ country, what, skills });
@@ -193,9 +186,9 @@ export async function GET(request: Request) {
         console.error("Jooble fetch failed:", e);
       }
     }
-    
 
-    return NextResponse.json(combined);
+    // ✅✅ FIXED: Wrap jobs array in object
+    return NextResponse.json({ jobs: combined });
   } catch (error) {
     console.error("GET /api/jobs error:", error);
     return NextResponse.json(

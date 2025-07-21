@@ -1,56 +1,53 @@
-// src/app/api/ai/improve-chances/route.ts
-
-import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
-import clientPromise from "@/../lib/mongodb";
+import { NextRequest, NextResponse } from "next/server";
 import OpenAI from "openai";
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
-export async function POST(request: Request) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const { job } = await request.json();
-
-  const client = await clientPromise;
-  const db = client.db("startsmartdb");
-  const profile = await db.collection("profiles").findOne({ userId });
-
-  if (!profile) {
-    return NextResponse.json({ error: "Profile not found" }, { status: 404 });
-  }
-
-  const prompt = `
-You are a job advisor. Given the job details and a candidate's profile, provide specific actionable advice on how the candidate can increase their chances of being hired for this job.
-
-Job:
-- Title: ${job.title}
-- Description: ${job.description}
-- Location: ${job.location}, ${job.country}
-
-Candidate:
-- Bio: ${profile.bio}
-- Skills: ${(profile.skills || []).join(", ")}
-- Experience: ${JSON.stringify(profile.experience)}
-- Education: ${JSON.stringify(profile.education)}
-
-Give bullet points with 3–5 personalized suggestions.
-`;
-
+export async function POST(req: NextRequest) {
   try {
+    const { job } = await req.json();
+    if (!job) {
+      return NextResponse.json({ error: "Missing job data" }, { status: 400 });
+    }
+
+    const prompt = `
+    Provide 5 personalized tips to improve the chances of getting hired for the following job:
+
+    Job Title: ${job.title}
+    Company: ${job.company}
+    Location: ${job.location}
+    Description: ${job.description}
+
+    Give practical advice tailored to this position.
+    `;
+
     const completion = await openai.chat.completions.create({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo", // cheaper and faster
       messages: [{ role: "user", content: prompt }],
-      temperature: 0.5,
+      max_tokens: 300,
+      temperature: 0.7,
     });
 
-    const tips = completion.choices[0].message.content;
+    const tips =
+      completion.choices[0].message && completion.choices[0].message.content
+        ? completion.choices[0].message.content.trim()
+        : "";
+
     return NextResponse.json({ tips });
-  } catch (error) {
-    console.error("Tips generation error:", error);
+  } catch (error: any) {
+    console.error("Error generating tips:", error);
+
+    if (error.status === 429) {
+      return NextResponse.json(
+        { error: "API quota exceeded. Please try again later." },
+        { status: 429 }
+      );
+    }
+
     return NextResponse.json(
-      { error: "Failed to generate suggestions" },
+      { error: "Failed to generate tips. Please try again later." },
       { status: 500 }
     );
   }
